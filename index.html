@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <title>Таймеры</title>
 
     <style>
@@ -10,86 +10,199 @@
 
       body {
         margin: 0;
-        height: 100vh;
+        min-height: 100vh;
         display: grid;
         place-items: center;
-        background: #0b0b0c;
-        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-          "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+        background:
+          radial-gradient(1200px 800px at 50% 10%, rgba(255,255,255,0.08), transparent 60%),
+          #0b0b0c;
+
+        /* SF Pro Rounded on Apple devices; safe fallbacks elsewhere */
+        font-family:
+          "SF Pro Rounded",
+          -apple-system,
+          BlinkMacSystemFont,
+          "SF Pro Display",
+          "SF Pro Text",
+          "Helvetica Neue",
+          system-ui,
+          sans-serif;
+
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
       }
 
+      /* lock-screen-ish layout */
       .wrap {
+        width: min(920px, 92vw);
+        padding:
+          calc(24px + env(safe-area-inset-top))
+          calc(18px + env(safe-area-inset-right))
+          calc(24px + env(safe-area-inset-bottom))
+          calc(18px + env(safe-area-inset-left));
         text-align: center;
-        padding: 24px;
-        max-width: 900px;
       }
 
-      .line {
-        font-size: clamp(24px, 4vw, 56px);
+      /* glass card */
+      .panel {
+        border-radius: 28px;
+        padding: clamp(18px, 3.2vw, 28px);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        box-shadow:
+          0 18px 60px rgba(0,0,0,0.45),
+          inset 0 1px 0 rgba(255,255,255,0.08);
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+      }
+
+      .block + .block { margin-top: clamp(18px, 2.8vw, 26px); }
+
+      .label {
+        font-size: clamp(12px, 2vw, 18px);
         font-weight: 600;
-        letter-spacing: -0.02em;
-        color: rgba(255, 255, 255, 0.92);
-        line-height: 1.15;
-      }
-
-      .line + .line {
-        margin-top: 16px;
+        letter-spacing: -0.005em;
+        color: rgba(255, 255, 255, 0.55);
+        margin-bottom: 8px;
       }
 
       .time {
+        font-size: clamp(30px, 7vw, 80px);
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        color: rgba(255, 255, 255, 0.92);
         font-variant-numeric: tabular-nums;
+        line-height: 1.05;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .units {
+        font-size: 0.30em;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+        color: rgba(255, 255, 255, 0.50);
+        transform: translateY(-0.08em);
+      }
+
+      /* seconds pulse */
+      .sec {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+      }
+
+      .sec.pulse {
+        animation: secPulse 220ms ease-out;
+      }
+
+      @keyframes secPulse {
+        0%   { transform: scale(1);    opacity: 1; }
+        35%  { transform: scale(1.05); opacity: 0.95; }
+        100% { transform: scale(1);    opacity: 1; }
+      }
+
+      .divider {
+        height: 1px;
+        background: rgba(255,255,255,0.10);
+        margin: clamp(14px, 2.2vw, 18px) auto;
+        width: min(520px, 82%);
+        border-radius: 1px;
+      }
+
+      @media (max-width: 420px) {
+        .panel { border-radius: 24px; }
+        .time { letter-spacing: -0.04em; }
       }
     </style>
   </head>
 
   <body>
     <div class="wrap">
-      <div class="line">
-        До встречи с лудиками —
-        <span id="to1930" class="time"></span>
-      </div>
+      <div class="panel">
+        <div class="block">
+          <div class="label">До встречи с лудиками</div>
+          <div id="to1930" class="time"></div>
+        </div>
 
-      <div class="line">
-        До 31 декабря 00:00 —
-        <span id="toNY" class="time"></span>
+        <div class="divider"></div>
+
+        <div class="block">
+          <div class="label">До 31 декабря 00:00</div>
+          <div id="toNY" class="time"></div>
+        </div>
       </div>
     </div>
 
     <script>
-      function formatDiff(ms) {
-        if (ms <= 0) return "0 сек";
-
+      function splitDiff(ms) {
+        if (ms <= 0) return { d: 0, h: 0, m: 0, s: 0 };
         const totalSeconds = Math.floor(ms / 1000);
-        const days = Math.floor(totalSeconds / 86400);
-        const hours = Math.floor((totalSeconds % 86400) / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
+        const d = Math.floor(totalSeconds / 86400);
+        const h = Math.floor((totalSeconds % 86400) / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        return { d, h, m, s };
+      }
 
-        const parts = [];
-        if (days) parts.push(`${days} д`);
-        if (hours || days) parts.push(`${hours} ч`);
-        if (minutes || hours || days) parts.push(`${minutes} мин`);
-        parts.push(`${seconds} сек`);
+      function renderTime(el, diff) {
+        const { d, h, m, s } = diff;
 
-        return parts.join(" ");
+        // lock-screen-ish: show H:M:S always; show days only if > 0
+        const daysPart = d > 0 ? `<span>${d}</span><span class="units">д</span>` : "";
+        const hoursPart = `<span>${h}</span><span class="units">ч</span>`;
+        const minsPart  = `<span>${m}</span><span class="units">мин</span>`;
+
+        el.innerHTML = `
+          ${daysPart}
+          ${hoursPart}
+          ${minsPart}
+          <span id="${el.id}-sec" class="sec"><span>${s}</span><span class="units">сек</span></span>
+        `;
+      }
+
+      let lastSecond1930 = null;
+      let lastSecondNY = null;
+
+      function pulseIfChanged(secEl, current, lastValueSetter) {
+        secEl.classList.remove("pulse");
+        void secEl.offsetWidth; // restart animation
+        secEl.classList.add("pulse");
+        lastValueSetter(current);
       }
 
       function updateTimers() {
         const now = new Date();
 
-        // Сегодня 19:30 — встреча с лудиками
+        // Today 19:30 — meeting
         const meeting = new Date();
         meeting.setHours(19, 30, 0, 0);
 
-        // 31 декабря 00:00
+        // 31 Dec 00:00 of current year
         const year = now.getFullYear();
         const endOfYear = new Date(year, 11, 31, 0, 0, 0, 0);
 
-        document.getElementById("to1930").textContent =
-          formatDiff(meeting - now);
+        const d1 = splitDiff(meeting - now);
+        const d2 = splitDiff(endOfYear - now);
 
-        document.getElementById("toNY").textContent =
-          formatDiff(endOfYear - now);
+        const el1 = document.getElementById("to1930");
+        const el2 = document.getElementById("toNY");
+
+        renderTime(el1, d1);
+        renderTime(el2, d2);
+
+        const sec1 = document.getElementById("to1930-sec");
+        const sec2 = document.getElementById("toNY-sec");
+
+        if (lastSecond1930 === null || d1.s !== lastSecond1930) {
+          pulseIfChanged(sec1, d1.s, (v) => (lastSecond1930 = v));
+        }
+        if (lastSecondNY === null || d2.s !== lastSecondNY) {
+          pulseIfChanged(sec2, d2.s, (v) => (lastSecondNY = v));
+        }
       }
 
       updateTimers();
