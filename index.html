@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Таймеры</title>
+    <style>
+      :root { color-scheme: dark; }
+      body{
+        margin:0; height:100vh; display:grid; place-items:center;
+        background:#0b0b0c;
+        font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",
+          "Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+      }
+      .wrap{ text-align:center; padding:24px; max-width:900px; }
+      .line{
+        font-size:clamp(24px,4vw,56px);
+        font-weight:600; letter-spacing:-0.02em;
+        color:rgba(255,255,255,0.92); line-height:1.15;
+      }
+      .line + .line{ margin-top:14px; }
+      .hint{ margin-top:18px; font-size:14px; color:rgba(255,255,255,0.55); font-weight:500; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="line">До 19:30 — 2 часа 10 минут</div>
+      <div class="line">До 31 декабря 00:00 — 14 дней 6 часов 40 минут</div>
+      <div class="hint">Шрифт: системный (SF Pro на macOS)</div>
+    </div>
+  </body>
+</html>
