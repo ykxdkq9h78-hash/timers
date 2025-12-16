@@ -4,29 +4,96 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Таймеры</title>
+
     <style>
       :root { color-scheme: dark; }
-      body{
-        margin:0; height:100vh; display:grid; place-items:center;
-        background:#0b0b0c;
-        font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",
-          "Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+
+      body {
+        margin: 0;
+        height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #0b0b0c;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+          "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
       }
-      .wrap{ text-align:center; padding:24px; max-width:900px; }
-      .line{
-        font-size:clamp(24px,4vw,56px);
-        font-weight:600; letter-spacing:-0.02em;
-        color:rgba(255,255,255,0.92); line-height:1.15;
+
+      .wrap {
+        text-align: center;
+        padding: 24px;
+        max-width: 900px;
       }
-      .line + .line{ margin-top:14px; }
-      .hint{ margin-top:18px; font-size:14px; color:rgba(255,255,255,0.55); font-weight:500; }
+
+      .line {
+        font-size: clamp(24px, 4vw, 56px);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: rgba(255, 255, 255, 0.92);
+        line-height: 1.15;
+      }
+
+      .line + .line {
+        margin-top: 16px;
+      }
+
+      .time {
+        font-variant-numeric: tabular-nums;
+      }
     </style>
   </head>
+
   <body>
     <div class="wrap">
-      <div class="line">До 19:30 — 2 часа 10 минут</div>
-      <div class="line">До 31 декабря 00:00 — 14 дней 6 часов 40 минут</div>
-      <div class="hint">Шрифт: системный (SF Pro на macOS)</div>
+      <div class="line">
+        До встречи с лудиками —
+        <span id="to1930" class="time"></span>
+      </div>
+
+      <div class="line">
+        До 31 декабря 00:00 —
+        <span id="toNY" class="time"></span>
+      </div>
     </div>
+
+    <script>
+      function formatDiff(ms) {
+        if (ms <= 0) return "0 сек";
+
+        const totalSeconds = Math.floor(ms / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        const parts = [];
+        if (days) parts.push(`${days} д`);
+        if (hours || days) parts.push(`${hours} ч`);
+        if (minutes || hours || days) parts.push(`${minutes} мин`);
+        parts.push(`${seconds} сек`);
+
+        return parts.join(" ");
+      }
+
+      function updateTimers() {
+        const now = new Date();
+
+        // Сегодня 19:30 — встреча с лудиками
+        const meeting = new Date();
+        meeting.setHours(19, 30, 0, 0);
+
+        // 31 декабря 00:00
+        const year = now.getFullYear();
+        const endOfYear = new Date(year, 11, 31, 0, 0, 0, 0);
+
+        document.getElementById("to1930").textContent =
+          formatDiff(meeting - now);
+
+        document.getElementById("toNY").textContent =
+          formatDiff(endOfYear - now);
+      }
+
+      updateTimers();
+      setInterval(updateTimers, 1000);
+    </script>
   </body>
 </html>
